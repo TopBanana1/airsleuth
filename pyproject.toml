@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "airsleuth"
+version = "1.0.0"
+description = "Wi-Fi capture analysis and manifest tooling"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "You" }]
+dependencies = [
+  "orjson>=3.9",
+  "rich>=13.7",
+]
+
+[project.scripts]
+airsleuth = "airsleuth.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+airsleuth = ["schema/jsonschema/*.json"]
