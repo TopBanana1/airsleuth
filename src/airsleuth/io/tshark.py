@@ -142,5 +142,42 @@ CERT_FIELDS = [
     "wlan.bssid",
     "wlan.sa",
     "wlan.da",
+    "eap.code",
     "tls.handshake.certificate",
+]
+
+# PMF-protected management frames from clients (SA != BSSID)
+# PMF-protected management frames from clients (SA != BSSID)
+PMF_MGMT_FILTER_BASE = "wlan.fc.type==0 && wlan.fc.protected==1 && wlan.bssid && wlan.sa!=wlan.bssid"
+PMF_MGMT_FIELDS = [
+    "wlan.bssid",
+    "wlan.sa",
+]
+
+# All management frames (protected or not) from clients for PMF stats
+PMF_MGMT_ALL_FILTER_BASE = "wlan.fc.type==0 && wlan.bssid && wlan.sa!=wlan.bssid"
+PMF_MGMT_ALL_FIELDS = [
+    "wlan.bssid",
+    "wlan.sa",
+    "wlan.fc.protected",
+]
+
+# Probe Requests (client-side SSID discovery)
+PROBE_REQ_FILTER = "(wlan.fc.type==0 && wlan.fc.type_subtype==4)"
+PROBE_REQ_FIELDS = [
+    "frame.time_epoch",
+    "wlan.sa", "wlan.sa.oui_resolved",
+    "wlan.da",
+    "wlan.ssid",
+]
+
+# EAP authentication overview (success/failure and types)
+AUTH_FILTER_BASE = "eap && (eap.code==1 || eap.code==2 || eap.code==3 || eap.code==4)"
+AUTH_FIELDS = [
+    "frame.time_epoch",
+    "wlan.bssid",
+    "wlan.sa", "wlan.da",
+    "eap.code",
+    "eap.type",
+    "eap.type.name",
 ]

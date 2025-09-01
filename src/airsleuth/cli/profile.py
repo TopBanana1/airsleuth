@@ -52,7 +52,8 @@ def main(argv=None):
             return 2
 
     console.print("[bold]airsleuth profile[/bold] — building manifest")
-    with Progress(
+    try:
+        with Progress(
         SpinnerColumn(),
         TextColumn("{task.description}"),
         BarColumn(),
@@ -61,12 +62,15 @@ def main(argv=None):
         console=console,
         transient=False,
         refresh_per_second=30,  # smoother updates for sub-second durations
-    ) as progress:
-        try:
-            manifest = build_manifest(files, args.essids or [], progress=progress)
-        except ValueError as e:
-            console.print(f"[red]{e}[/red]")
-            return 2
+        ) as progress:
+            try:
+                manifest = build_manifest(files, args.essids or [], progress=progress)
+            except ValueError as e:
+                console.print(f"[red]{e}[/red]")
+                return 2
+    except KeyboardInterrupt:
+        console.print("[yellow]Interrupted by user (Ctrl+C). Exiting…[/yellow]")
+        return 130
 
     out = args.out
     # Merge if exists and same schema version
@@ -83,8 +87,28 @@ def main(argv=None):
         except Exception:
             console.print("[yellow]Existing manifest unreadable/malformed. Creating a new file.[/yellow]")
 
-    with open(out, "wb") as fh:
-        fh.write(dumps_json(manifest))
+    try:
+        with open(out, "wb") as fh:
+            fh.write(dumps_json(manifest))
+    except KeyboardInterrupt:
+        console.print("[yellow]Interrupted while writing output. Partial work discarded.[/yellow]")
+        return 130
+
+    # Export artifacts next to manifest
+    try:
+        from airsleuth.build.assemble import export_artifacts
+        base_dir = os.path.dirname(out) or "."
+        artifacts_dir = os.path.join(base_dir, "artifacts")
+        export_artifacts(manifest, artifacts_dir)
+        # Re-write manifest including artifact paths
+        with open(out, "wb") as fh:
+            fh.write(dumps_json(manifest))
+        console.print(f"[green]Artifacts exported to:[/green] {artifacts_dir}")
+    except KeyboardInterrupt:
+        console.print("[yellow]Interrupted while exporting artifacts.[/yellow]")
+        return 130
+    except Exception as e:
+        console.print(f"[yellow]Artifact export skipped:[/yellow] {e}")
 
     console.print(f"[green]Manifest written to:[/green] {out}")
     return 0
